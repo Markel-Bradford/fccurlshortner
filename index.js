@@ -46,13 +46,12 @@ app.post('/api/shorturl', async function (req, res) {
       // Count number of documents in collection
       const count_url = await Url.countDocuments({});
       // Create new document in DB
-      const newUrl = new Url({
+      const newUrl = await Url.create({
         original_url: url_input,
         short_url: count_url + 1 // Incretement short Url by 1 based on document count
       })
-
-      // Save the new document
-      await newUrl.save()
+      // Respond with original url and short url
+      res.json({original_url: newUrl.original_url, short_url: newUrl.short_url})      
     } else {
       // If Url exists, return original url and short url
       res.json({original_url: urlInDB.original_url, short_url: urlInDB.short_url})
@@ -60,10 +59,9 @@ app.post('/api/shorturl', async function (req, res) {
   }
 })
 
-app.get('/api/shorturl/<short_url>', async function (req, res) {
-  // Request 
-  const url = req.params.short_url;
-  const urlInDB = await Url.findOne({ short_url: url });
+app.get('/api/shorturl/:short_url', async function (req, res) {
+  // Find the url that matches the queried short_url
+  const urlInDB = await Url.findOne({ short_url: req.params.short_url });
 
   // If url is not in DB, return error message
   if (!urlInDB) {
